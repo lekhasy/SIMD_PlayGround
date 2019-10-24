@@ -1,4 +1,5 @@
-﻿using System;
+﻿
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -12,15 +13,21 @@ namespace SIMD_PlayGround
         static void Main(string[] args)
         {
             var r = new Random();
-            int[] lhs = new int[int.MaxValue / 12];
-            int[] rhs = new int[int.MaxValue / 12];
+            int[] lhs = new int[int.MaxValue / 8];
+            int[] rhs = new int[int.MaxValue / 8];
+
+            Console.WriteLine("SIMD hardware accelerated: " + Vector.IsHardwareAccelerated);
+            Console.WriteLine("SIMD register size: " + Vector<int>.Count * 32 + " bit");
+
+            Console.WriteLine("Preparing data");
 
             var t1 = Task.Run(() =>
             {
                 for (int i = 0; i < lhs.Length; i++)
                 {
-                    lhs[i] = r.Next();
+                    lhs[i] = r.Next(1, 15);
                 }
+                Console.WriteLine("done data preparing step A");
             });
 
 
@@ -28,33 +35,29 @@ namespace SIMD_PlayGround
             {
                 for (int i = 0; i < rhs.Length; i++)
                 {
-                    rhs[i] = r.Next();
+                    rhs[i] = r.Next(1, 15);
                 }
+                Console.WriteLine("done data preparing step B");
             });
 
             Task.WhenAll(t1, t2).Wait();
 
-            Console.WriteLine("done data preparing step");
+            Console.WriteLine("Executing");
 
             var st1 = Stopwatch.StartNew();
 
-            for (int i = 0; i < 10; i++)
-            {
-                SIMDArrayAddition(lhs, rhs);
-            }
+            SIMDArrayAddition(lhs, rhs);
 
             st1.Stop();
 
             var st2 = Stopwatch.StartNew();
-            for (int i = 0; i < 10; i++)
-            {
-                ArrayAddition(lhs, rhs);
-            }
+
+            ArrayAddition(lhs, rhs);
 
             st2.Stop();
 
-            Console.WriteLine(st1.Elapsed);
-            Console.WriteLine(st2.Elapsed);
+            Console.WriteLine("With SIMD: " + st1.Elapsed);
+            Console.WriteLine("Without SIMD: " + st2.Elapsed);
             Console.ReadLine();
         }
 
@@ -70,7 +73,7 @@ namespace SIMD_PlayGround
 
         public static int[] SIMDArrayAddition(int[] lhs, int[] rhs)
         {
-            var simdLength = Vector<int>.Count;
+            var simdLength = Vector<ushort>.Count;
             var result = new int[lhs.Length];
             var i = 0;
             for (i = 0; i <= lhs.Length - simdLength; i += simdLength)
