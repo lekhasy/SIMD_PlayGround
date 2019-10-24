@@ -17,9 +17,11 @@ namespace SIMD_PlayGround
             int[] rhs = new int[int.MaxValue / 8];
 
             Console.WriteLine("SIMD hardware accelerated: " + Vector.IsHardwareAccelerated);
-            Console.WriteLine("SIMD register size: " + Vector<int>.Count * 32 + " bit");
+            Console.WriteLine("SIMD register size: " + Vector<int>.Count * (IntPtr.Size * 8) + " bit" + Environment.NewLine);
+            Console.WriteLine("Integer type size: " + IntPtr.Size + " byte");
+            Console.WriteLine("Running as: " + (IntPtr.Size * 8) + "bit" + Environment.NewLine);
 
-            Console.WriteLine("Preparing data");
+            Console.WriteLine("Preparing data ...");
 
             var t1 = Task.Run(() =>
             {
@@ -73,7 +75,7 @@ namespace SIMD_PlayGround
 
         public static int[] SIMDArrayAddition(int[] lhs, int[] rhs)
         {
-            var simdLength = Vector<ushort>.Count;
+            var simdLength = Vector<int>.Count;
             var result = new int[lhs.Length];
             var i = 0;
             for (i = 0; i <= lhs.Length - simdLength; i += simdLength)
